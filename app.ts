@@ -8,7 +8,8 @@ import {
   getNews,
   getRumors,
   getArea,
-  getMarkers
+  getMarkers,
+  getPercentage
 } from "./data";
 
 const screen = blessed.screen({
@@ -46,15 +47,9 @@ const line2 = grid.set(0, 9, 3, 3, contrib.line, {
 } as contrib.Widgets.LineOptions);
 
 const gauge1 = grid.set(3, 6, 1, 6, contrib.gauge, {
-  label: "Stacked",
+  label: "Percentage",
   showLabel: true
 } as contrib.Widgets.GaugeOptions);
-
-gauge1.setStack([
-  { percent: 3, stroke: "green" },
-  { percent: 57, stroke: "magenta" },
-  { percent: 40, stroke: "cyan" }
-]);
 
 const newsLogger = grid.set(4, 0, 2, 4, contrib.log, {
   label: "News"
@@ -79,6 +74,14 @@ const table = grid.set(4, 8, 2, 4, contrib.table, {
 } as contrib.Widgets.TableOptions);
 
 table.focus();
+
+getPercentage().then(data => {
+  gauge1.setStack([
+    { percent: data[0], stroke: "blue" },
+    { percent: data[1], stroke: "magenta" },
+    { percent: data[2], stroke: "cyan" }
+  ]);
+});
 
 getArea().then(data => {
   table.setData({
@@ -133,11 +136,11 @@ getLineChartData().then(data => {
     ...data.serious
   };
   let confirmed = {
-    ...{ title: "Confirmed", style: { line: "red" } },
+    ...{ title: "Confirmed", style: { line: "magenta" } },
     ...data.confirmed
   };
   let suspected = {
-    ...{ title: "Suspected" },
+    ...{ title: "Suspected", style: { line: "cyan" } },
     ...data.suspected
   };
   line1.setData([dead, cured]);

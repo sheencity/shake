@@ -156,6 +156,24 @@ export async function getArea() {
   ]);
 }
 
+export async function getPercentage() {
+  const url = `${endpoint}/overall`;
+  const response = await got<Overall>(url, { responseType: "json" });
+  const {
+    confirmedCount,
+    suspectedCount,
+    seriousCount
+  } = response.body.results[0];
+  const total = confirmedCount + suspectedCount + seriousCount!;
+  // const p1 = ;
+
+  return [
+    +(seriousCount! / total * 100).toFixed(1),
+    +(confirmedCount! / total * 100).toFixed(1),
+    +(suspectedCount! / total * 100).toFixed(1)
+  ];
+}
+
 export function getMarkers() {
   return [
     { loc: "湖北", lon: "114.341861", lat: "30.546498" },
@@ -212,7 +230,7 @@ export function getMarkers() {
 }
 
 async function run() {
-  const a = await getArea();
+  const a = await getPercentage();
   console.log(a);
 }
 
