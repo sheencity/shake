@@ -66,19 +66,26 @@ const series2 = {
 };
 
 line.setData([series1, series2]);
-map.addMarker({ lon: "116.46", lat: "39.92" });
-// map.addMarker({ lon: "113.23", lat: "23.16" });
 
 screen.key(["escape", "q", "C-c"], function(ch, key) {
   return process.exit(0);
 });
 
 setInterval(() => {
-  const time = DateTime.local().toLocaleString(
-    DateTime.TIME_24_WITH_SECONDS
-  );
+  const time = DateTime.local().toLocaleString(DateTime.TIME_24_WITH_SECONDS);
   clock.setDisplay(time);
   screen.render();
 }, 1000);
+
+let marker = true;
+setInterval(() => {
+  if (marker) {
+    map.addMarker({ lon: "116.46", lat: "39.92" });
+    map.addMarker({ lon: "113.23", lat: "23.16" });
+  } else {
+    map.clearMarkers();
+  }
+  marker = !marker;
+}, 1500);
 
 screen.render();
