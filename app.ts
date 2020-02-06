@@ -1,74 +1,117 @@
 import blessed from "blessed";
 import contrib from "blessed-contrib";
+import chalk from "chalk";
 import { DateTime } from "luxon";
-const screen = blessed.screen();
-const grid = new contrib.grid({ rows: 4, cols: 2, screen });
-
-type Lcd = contrib.Widgets.LcdElement;
-const clock: Lcd = grid.set(0, 0, 1, 1, contrib.lcd, {
-  elements: 8,
-  display: "00 00 00" as any,
-  label: "Local Time"
+import { getLineChartData, getNews, getRumors } from "./data";
+import { map } from "rxjs/operators";
+const screen = blessed.screen({
+  fullUnicode: true
+});
+const grid = new contrib.grid({ rows: 6, cols: 12, screen });
+screen.key(["escape", "q", "C-c"], function(ch, key) {
+  return process.exit(0);
 });
 
-type Map = contrib.Widgets.MapElement;
-const map: any = grid.set(1, 0, 3, 1, contrib.map, { label: "World Map" });
+const clock = grid.set(0, 0, 1, 6, contrib.lcd, {
+  elements: 8,
+  display: "00 00 00" as any,
+  label: "Local Time" as any
+} as contrib.Widgets.LcdOptions);
 
-type Line = contrib.Widgets.LineElement;
-const line: Line = grid.set(0, 1, 4, 1, contrib.line, {
+const worldMap = grid.set(1, 0, 3, 6, contrib.map, {
+  label: "World Map"
+} as contrib.Widgets.MapOptions) as contrib.Widgets.MapElement;
+
+const line1 = grid.set(0, 6, 3, 3, contrib.line, {
   style: { line: "yellow", text: "green", baseline: "white" },
   xLabelPadding: 3,
   xPadding: 5,
   showLegend: true,
-  label: "Title"
+  label: "Dead/Cured"
+} as contrib.Widgets.LineOptions);
+
+const line2 = grid.set(0, 9, 3, 3, contrib.line, {
+  style: { line: "yellow", text: "green", baseline: "white" },
+  xLabelPadding: 3,
+  xPadding: 5,
+  showLegend: true,
+  label: "Confirmed/Suspected"
+} as contrib.Widgets.LineOptions);
+
+const gauge1 = grid.set(3, 6, 1, 6, contrib.gauge, {
+  label: "Stacked",
+  showLabel: true
+} as contrib.Widgets.GaugeOptions);
+
+gauge1.setStack([
+  { percent: 3, stroke: "green" },
+  { percent: 57, stroke: "magenta" },
+  { percent: 40, stroke: "cyan" }
+]);
+
+const newsLogger = grid.set(4, 0, 2, 4, contrib.log, {
+  label: "News"
+} as contrib.Widgets.LogOptions);
+
+const rumorLogger = grid.set(4, 4, 2, 4, contrib.log, {
+  label: "Rumors"
+} as contrib.Widgets.LogOptions);
+
+getNews(1800).then(data => {
+  data
+    .pipe(
+      map(news => {
+        const time = chalk.yellow(
+          DateTime.fromMillis(news.pubDate).toFormat("MM-dd HH:mm:ss")
+        );
+        const publisher = chalk.green(news.infoSource);
+        const title = news.title;
+        return `[${time}][${publisher}]${title}`;
+      })
+    )
+    .subscribe(news => {
+      newsLogger.log(news);
+    });
 });
 
-const series1 = {
-  title: "Dead",
-  style: {
-    line: "red"
-  },
-  x: [
-    "1-23",
-    "1-24",
-    "1-25",
-    "1-26",
-    "1-27",
-    "1-28",
-    "1-29",
-    "1-30",
-    "1-31",
-    "2-1",
-    "2-2",
-    "2-3",
-    "2-4"
-  ],
-  y: [25, 41, 56, 80, 106, 132, 170, 213, 259, 304, 361, 425, 493]
-};
-const series2 = {
-  title: "Cured",
-  x: [
-    "1-23",
-    "1-24",
-    "1-25",
-    "1-26",
-    "1-27",
-    "1-28",
-    "1-29",
-    "1-30",
-    "1-31",
-    "2-1",
-    "2-2",
-    "2-3",
-    "2-4"
-  ],
-  y: [34, 38, 49, 51, 60, 103, 124, 171, 243, 328, 475, 632, 1010]
-};
+getRumors(3100).then(data => {
+  data
+    .pipe(
+      map(rumor => {
+        const q = `┏ ${chalk.yellow(rumor.title)}`;
+        const a = `┗ ${chalk.green(rumor.mainSummary)}`;
+        return { q, a };
+      })
+    )
+    .subscribe(rumor => {
+      rumorLogger.log(rumor.q);
+      rumorLogger.log(rumor.a);
+    });
+});
 
-line.setData([series1, series2]);
-
-screen.key(["escape", "q", "C-c"], function(ch, key) {
-  return process.exit(0);
+getLineChartData().then(data => {
+  let dead = {
+    ...{ title: "Dead", style: { line: "red" } },
+    ...data.dead
+  };
+  let cured = {
+    ...{ title: "Cured" },
+    ...data.cured
+  };
+  let serious = {
+    ...{ title: "Serious", style: { line: "blue" } },
+    ...data.serious
+  };
+  let confirmed = {
+    ...{ title: "Confirmed", style: { line: "red" } },
+    ...data.confirmed
+  };
+  let suspected = {
+    ...{ title: "Suspected" },
+    ...data.suspected
+  };
+  line1.setData([dead, cured]);
+  line2.setData([serious, confirmed, suspected]);
 });
 
 setInterval(() => {
@@ -80,10 +123,10 @@ setInterval(() => {
 let marker = true;
 setInterval(() => {
   if (marker) {
-    map.addMarker({ lon: "116.46", lat: "39.92" });
-    map.addMarker({ lon: "113.23", lat: "23.16" });
+    (worldMap as any).addMarker({ lon: "116.46", lat: "39.92" });
+    (worldMap as any).addMarker({ lon: "113.23", lat: "23.16" });
   } else {
-    map.clearMarkers();
+    (worldMap as any).clearMarkers();
   }
   marker = !marker;
 }, 1500);

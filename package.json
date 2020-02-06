@@ -11,10 +11,15 @@
   "dependencies": {
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.18",
-    "luxon": "^1.22.0"
+    "chalk": "^3.0.0",
+    "got": "^10.4.0",
+    "lodash": "^4.17.15",
+    "luxon": "^1.22.0",
+    "rxjs": "^6.5.4"
   },
   "devDependencies": {
     "@types/blessed": "^0.1.17",
+    "@types/lodash": "^4.14.149",
     "@types/luxon": "^1.21.0",
     "prettier": "^1.19.1",
     "ts-node": "^8.6.2",
