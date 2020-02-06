@@ -2,8 +2,15 @@ import blessed from "blessed";
 import contrib from "blessed-contrib";
 import chalk from "chalk";
 import { DateTime } from "luxon";
-import { getLineChartData, getNews, getRumors } from "./data";
 import { map } from "rxjs/operators";
+import {
+  getLineChartData,
+  getNews,
+  getRumors,
+  getArea,
+  getMarkers
+} from "./data";
+
 const screen = blessed.screen({
   fullUnicode: true
 });
@@ -56,6 +63,29 @@ const newsLogger = grid.set(4, 0, 2, 4, contrib.log, {
 const rumorLogger = grid.set(4, 4, 2, 4, contrib.log, {
   label: "Rumors"
 } as contrib.Widgets.LogOptions);
+
+const table = grid.set(4, 8, 2, 4, contrib.table, {
+  keys: true,
+  fg: "white",
+  selectedFg: "white",
+  selectedBg: "blue",
+  interactive: true as any,
+  label: "Each Area",
+  width: "30%",
+  height: "30%",
+  border: { type: "line", fg: "cyan" },
+  columnSpacing: 6, //in chars
+  columnWidth: [12, 10, 5, 5] /*in chars*/
+} as contrib.Widgets.TableOptions);
+
+table.focus();
+
+getArea().then(data => {
+  table.setData({
+    headers: ["Province", "Confirmed", "Cured", "Dead"],
+    data: data as any
+  });
+});
 
 getNews(1800).then(data => {
   data
@@ -122,9 +152,11 @@ setInterval(() => {
 
 let marker = true;
 setInterval(() => {
+  const markers = getMarkers();
   if (marker) {
-    (worldMap as any).addMarker({ lon: "116.46", lat: "39.92" });
-    (worldMap as any).addMarker({ lon: "113.23", lat: "23.16" });
+    markers.forEach(({ lon, lat }) =>
+      (worldMap as any).addMarker({ lon, lat })
+    );
   } else {
     (worldMap as any).clearMarkers();
   }
