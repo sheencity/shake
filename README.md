@@ -1,5 +1,5 @@
 # Shake - Dashboard for Geeks
-
+![demo](docs/demo.png)
 ![demo](docs/demo.gif)
 
 ## Features
