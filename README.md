@@ -1,6 +1,6 @@
 # Shake - Dashboard for Geeks
 
-<video src="./docs/demo.mp4" width="100%"></video>
+![demo](docs/demo.gif)
 
 ## Features
 
