@@ -4,6 +4,7 @@
 
 ## Features
 
+- All is realtime data
 - Monitor the world's viral infections
 - Show the latest news about viruses
 - Pivot view of virus infection
