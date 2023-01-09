@@ -15,7 +15,7 @@
     "chalk": "^3.0.0",
     "got": "^10.4.0",
     "lodash": "^4.17.15",
-    "luxon": "^1.22.0",
+    "luxon": "^2.5.2",
     "rxjs": "^6.5.4"
   },
   "devDependencies": {
